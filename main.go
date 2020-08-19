@@ -197,6 +197,7 @@ const indexTemplate = `
 	<title>Quotes</title>
 	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="https://use.fontawesome.com/releases/v5.8.0/css/all.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
@@ -217,9 +218,9 @@ const indexTemplate = `
 				<div class="card mt-5 mb-5">
 					<div class="card-body">
 						<div class="row">
-						<i class="fas fa-quote-left" style="font-size: 4em; color: #0a84ff; float: left; margin-right: 30px; margin-left: 20px;"></i>
-				
-						<h3 class="mt-4 d-inline-block">{{ $quote.HTML }}</h3>
+							<i class="fas fa-quote-left" style="font-size: 4em; color: #0a84ff; float: left; margin-right: 30px; margin-left: 20px;"></i>
+					
+							<h3 class="mt-4 d-inline-block" style="max-width: 70%">{{ $quote.HTML }}</h3>
 						</div>
 
 						<div class="float-right text-muted">
@@ -244,6 +245,7 @@ const addQuoteTemplate = `
 <head>
 	<title>Add a Quote</title>
 	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
