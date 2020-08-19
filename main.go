@@ -218,9 +218,13 @@ const indexTemplate = `
 				<div class="card mt-5 mb-5">
 					<div class="card-body">
 						<div class="row">
-							<i class="fas fa-quote-left" style="font-size: 4em; color: #0a84ff; float: left; margin-right: 30px; margin-left: 20px;"></i>
+							<div class="col-12 col-sm-2 col-md-2 col-lg-1">
+								<i class="fas fa-quote-left" style="font-size: 3em; color: #0a84ff; float: left; margin-right: 30px; margin-left: 20px;"></i>
+							</div>
 					
-							<h3 class="mt-4 d-inline-block" style="max-width: 70%">{{ $quote.HTML }}</h3>
+							<div class="col-12 col-sm-10 col-md-10 col-lg-11">
+								<h3 class="mt-4">{{ $quote.HTML }}</h3>
+							</div>
 						</div>
 
 						<div class="float-right text-muted">
