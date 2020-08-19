@@ -87,6 +87,11 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
+	r.Get("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/plain")
+		w.Write([]byte("User-agent: *\nDisallow: /"))
+	})
+
 	log.Fatal(http.ListenAndServe(":8990", r))
 }
 
