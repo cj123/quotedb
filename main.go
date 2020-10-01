@@ -88,6 +88,11 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
+	r.Get("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/plain")
+		w.Write([]byte("User-agent: *\nDisallow: /"))
+	})
+
 	log.Fatal(http.ListenAndServe(":8990", r))
 }
 
@@ -204,6 +209,7 @@ const indexTemplate = `
 	<title>Quotes</title>
 	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="https://use.fontawesome.com/releases/v5.8.0/css/all.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
@@ -224,9 +230,13 @@ const indexTemplate = `
 				<div class="card mt-5 mb-5">
 					<div class="card-body">
 						<div class="row">
-						<i class="fas fa-quote-left" style="font-size: 4em; color: #0a84ff; float: left; margin-right: 30px; margin-left: 20px;"></i>
-				
-						<h3 class="mt-4 d-inline-block">{{ $quote.HTML }}</h3>
+							<div class="col-12 col-sm-2 col-md-2 col-lg-1">
+								<i class="fas fa-quote-left" style="font-size: 3em; color: #0a84ff; float: left; margin-right: 30px; margin-left: 20px;"></i>
+							</div>
+					
+							<div class="col-12 col-sm-10 col-md-10 col-lg-11">
+								<h3 class="mt-4">{{ $quote.HTML }}</h3>
+							</div>
 						</div>
 
 						<div class="float-right text-muted">
@@ -251,6 +261,7 @@ const addQuoteTemplate = `
 <head>
 	<title>Add a Quote</title>
 	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
