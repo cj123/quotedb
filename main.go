@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -162,7 +163,18 @@ type Quote struct {
 	WhatSillyThingDidTheySay string    `name:"What silly thing did they say?" elem:"textarea"`
 }
 
+func (q *Quote) IsImageURL() bool {
+	_, err := url.Parse(q.WhatSillyThingDidTheySay)
+
+	return err == nil && strings.Contains(q.WhatSillyThingDidTheySay, "http") &&
+		(strings.HasSuffix(q.WhatSillyThingDidTheySay, ".png") || strings.HasSuffix(q.WhatSillyThingDidTheySay, ".jpg") || strings.HasSuffix(q.WhatSillyThingDidTheySay, ".jpeg") || strings.HasSuffix(q.WhatSillyThingDidTheySay, ".gif"))
+}
+
 func (q *Quote) HTML() template.HTML {
+	if q.IsImageURL() {
+		return template.HTML(fmt.Sprintf(`<img src="%s" class="img img-fluid" style="max-height: 400px;">`, q.WhatSillyThingDidTheySay))
+	}
+
 	return template.HTML(strings.Replace(q.WhatSillyThingDidTheySay, "\r\n", "<br>", -1))
 }
 
