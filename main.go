@@ -194,7 +194,7 @@ func (q *Quote) Save() error {
 
 	enc := json.NewEncoder(f)
 	enc.SetIndent("", "    ")
-
+	enc.SetEscapeHTML(false)
 	return enc.Encode(q)
 }
 
@@ -204,12 +204,14 @@ type AddQuoteForm struct {
 }
 
 const indexTemplate = `
+<!doctype html>
 <html lang="en">
 <head>
 	<title>Quotes</title>
 	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="https://use.fontawesome.com/releases/v5.8.0/css/all.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta charset="utf-8">
 </head>
 
 <body>
@@ -257,11 +259,13 @@ const indexTemplate = `
 `
 
 const addQuoteTemplate = `
+<!doctype html>
 <html lang="en">
 <head>
 	<title>Add a Quote</title>
 	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta charset="utf-8">
 </head>
 
 <body>
