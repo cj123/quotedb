@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -54,39 +54,27 @@ func main() {
 		})
 	})
 
-	r.Get("/add-quote", func(w http.ResponseWriter, r *http.Request) {
-		form, err := encodeForm(AddQuoteForm{})
+	r.HandleFunc("/add-quote", func(w http.ResponseWriter, r *http.Request) {
+		var quoteForm AddQuoteForm
 
-		if err != nil {
-			http.Error(w, "could not encode form", http.StatusInternalServerError)
-			return
-		}
+		encodedForm, save, err := formulate.Formulate(r, &quoteForm, buildEncoder, buildDecoder)
 
-		w.Header().Add("Content-Type", "text/html")
-		_, _ = w.Write([]byte(fmt.Sprintf(addQuoteTemplate, form)))
-	})
+		if err == nil && save {
+			quoteForm.Quote.Time = time.Now()
 
-	r.Post("/submit", func(w http.ResponseWriter, r *http.Request) {
-		var form AddQuoteForm
+			if err := quoteForm.Quote.Save(); err != nil {
+				http.Error(w, "couldn't save quote", http.StatusInternalServerError)
+				return
+			}
 
-		if err := decodeForm(r, &form); err != nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+		} else if err != nil {
 			http.Error(w, "bad form", http.StatusInternalServerError)
 			return
 		}
 
-		if string(form.WhatIsThePassword) != password {
-			http.Error(w, "bad password", http.StatusForbidden)
-			return
-		}
-
-		form.Quote.Time = time.Now()
-
-		if err := form.Quote.Save(); err != nil {
-			http.Error(w, "couldn't save quote", http.StatusInternalServerError)
-			return
-		}
-
-		http.Redirect(w, r, "/", http.StatusFound)
+		w.Header().Add("Content-Type", "text/html")
+		_, _ = w.Write([]byte(fmt.Sprintf(addQuoteTemplate, encodedForm)))
 	})
 
 	r.Get("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
@@ -97,26 +85,16 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8990", r))
 }
 
-func encodeForm(data interface{}) ([]byte, error) {
-	buf := new(bytes.Buffer)
-
-	err := formulate.NewEncoder(buf, decorators.BootstrapDecorator{}).Encode(data)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), err
+func buildEncoder(r *http.Request, w io.Writer) *formulate.HTMLEncoder {
+	return formulate.NewEncoder(w, decorators.BootstrapDecorator{})
 }
 
-func decodeForm(r *http.Request, data interface{}) error {
-	if err := r.ParseForm(); err != nil {
-		return err
-	}
+func buildDecoder(r *http.Request, form url.Values) *formulate.HTTPDecoder {
+	dec := formulate.NewDecoder(form)
+	dec.SetValueOnValidationError(true)
+	dec.AddValidators(passwordValidator{})
 
-	dec := formulate.NewDecoder(r.Form)
-
-	return dec.Decode(data)
+	return dec
 }
 
 func listQuotes() ([]*Quote, error) {
@@ -203,7 +181,7 @@ func (q *Quote) Save() error {
 
 type AddQuoteForm struct {
 	Quote
-	WhatIsThePassword formulate.Password `name:"What is the password?" help:"If you don't know this, then you don't belong here."`
+	WhatIsThePassword formulate.Password `name:"What is the password?" help:"If you don't know this, then you don't belong here." validators:"password"`
 }
 
 const indexTemplate = `
@@ -284,7 +262,7 @@ const addQuoteTemplate = `
 
 			<div class="clearfix"></div>
 			
-			<form method="POST" action="/submit" class="mt-5">
+			<form method="POST" action="/add-quote" class="mt-5">
 				%s
 
 				<button type="submit" class="btn btn-success float-right">Submit</button>
@@ -301,3 +279,22 @@ const addQuoteTemplate = `
 </body>
 </html>
 `
+
+type passwordValidator struct{}
+
+func (p passwordValidator) Validate(val interface{}) (ok bool, message string) {
+	switch a := val.(type) {
+	case string:
+		if a == password {
+			return true, ""
+		}
+
+		return false, "The password is incorrect."
+	default:
+		return false, ""
+	}
+}
+
+func (p passwordValidator) TagName() string {
+	return "password"
+}

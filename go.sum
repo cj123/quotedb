@@ -1,10 +1,13 @@
-github.com/cj123/formulate v1.1.0 h1:olh+BEBOuell82ms/+7zjFJxZi+u1r/jB3hjDavvmQs=
-github.com/cj123/formulate v1.1.0/go.mod h1:7ojWVfgO+BCeIot8tyOTING31yS4PmtfyPK2kQT2agE=
-github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/cj123/formulate v1.3.2 h1:wtuYDq54lSFPJiviPqeQOJwzlPt6RjT1lQBTxUgXPf0=
+github.com/cj123/formulate v1.3.2/go.mod h1:h2z7X3iVqhgIX5ilX5wlixRsUeRKQKHeEqvIba5aG5Q=
+github.com/cj123/sessions v1.1.5/go.mod h1:DZy9PjoRy0ESlWywkQPAPlgZ5fAb3v+srKSSihnIKVU=
 github.com/fatih/camelcase v1.0.0 h1:hxNvNX/xYBp0ovncs8WyWZrOrpBNub/JfaMvbURyft8=
 github.com/fatih/camelcase v1.0.0/go.mod h1:yN2Sb0lFhZJUdVvtELVWefmrXpuZESvPmqwoZc+/fpc=
 github.com/go-chi/chi v1.5.4 h1:QHdzF2szwjqVV4wmByUnTcsbIg7UGaQ0tPF2t5GcAIs=
 github.com/go-chi/chi v1.5.4/go.mod h1:uaf8YgoFazUOkPBG7fxPftUylNumIev9awIWOENIuEg=
+github.com/gorilla/securecookie v1.1.1/go.mod h1:ra0sb63/xPlUeL+yeDciTfxMRAA+MP+HVt/4epWDjd4=
+github.com/mvdan/xurls v1.1.0 h1:OpuDelGQ1R1ueQ6sSryzi6P+1RtBpfQHM8fJwlE45ww=
+github.com/mvdan/xurls v1.1.0/go.mod h1:tQlNn3BED8bE/15hnSL2HLkDeLWpNPAwtw7wkEq44oU=
 github.com/yosssi/gohtml v0.0.0-20200519115854-476f5b4b8047 h1:YWaOkupKL+BRRJSWRq/uhSkWXc1K0QVIYVG36XUBGOc=
 github.com/yosssi/gohtml v0.0.0-20200519115854-476f5b4b8047/go.mod h1:+ccdNT0xMY1dtc5XBxumbYfOUhmduiGudqaDgD2rVRE=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
