@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/cj123/formulate"
 	"github.com/cj123/formulate/decorators"
 	"github.com/go-chi/chi"
+	"mvdan.cc/xurls"
 )
 
 var (
@@ -175,10 +177,14 @@ func (q *Quote) IsImageURL() bool {
 		(strings.HasSuffix(q.WhatSillyThingDidTheySay, ".png") || strings.HasSuffix(q.WhatSillyThingDidTheySay, ".jpg") || strings.HasSuffix(q.WhatSillyThingDidTheySay, ".jpeg") || strings.HasSuffix(q.WhatSillyThingDidTheySay, ".gif"))
 }
 
+var urlDetectRegex = regexp.MustCompile(`(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])`)
+
 func (q *Quote) HTML() template.HTML {
 	if q.IsImageURL() {
 		return template.HTML(fmt.Sprintf(`<img src="%s" class="img img-fluid" style="max-height: 400px;">`, q.WhatSillyThingDidTheySay))
 	}
+
+	q.WhatSillyThingDidTheySay = xurls.Relaxed.ReplaceAllString(q.WhatSillyThingDidTheySay, `<a href="$1">$1</a>`)
 
 	return template.HTML(strings.Replace(q.WhatSillyThingDidTheySay, "\r\n", "<br>", -1))
 }
