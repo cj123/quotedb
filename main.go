@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -176,8 +175,6 @@ func (q *Quote) IsImageURL() bool {
 	return err == nil && strings.Contains(q.WhatSillyThingDidTheySay, "http") &&
 		(strings.HasSuffix(q.WhatSillyThingDidTheySay, ".png") || strings.HasSuffix(q.WhatSillyThingDidTheySay, ".jpg") || strings.HasSuffix(q.WhatSillyThingDidTheySay, ".jpeg") || strings.HasSuffix(q.WhatSillyThingDidTheySay, ".gif"))
 }
-
-var urlDetectRegex = regexp.MustCompile(`(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])`)
 
 func (q *Quote) HTML() template.HTML {
 	if q.IsImageURL() {
