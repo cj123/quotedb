@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	_ "embed"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -19,6 +21,7 @@ import (
 	"github.com/cj123/formulate"
 	"github.com/cj123/formulate/decorators"
 	"github.com/go-chi/chi"
+	"github.com/gorilla/csrf"
 	"mvdan.cc/xurls"
 )
 
@@ -29,7 +32,7 @@ var (
 
 func init() {
 	flag.StringVar(&quotesFolder, "f", "quotes", "where to store the quotes")
-	flag.StringVar(&password, "p", "banana", "password")
+	flag.StringVar(&password, "p", "password", "password")
 	flag.Parse()
 }
 
@@ -45,11 +48,11 @@ func main() {
 		quotes, err := listQuotes()
 
 		if err != nil {
-			http.Error(w, "oh god its broken", http.StatusInternalServerError)
+			http.Error(w, "couldn't list quotes", http.StatusInternalServerError)
 			return
 		}
 
-		indexTmpl.Execute(w, map[string]interface{}{
+		_ = indexTmpl.Execute(w, map[string]interface{}{
 			"Quotes": quotes,
 		})
 	})
@@ -79,14 +82,26 @@ func main() {
 
 	r.Get("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/plain")
-		w.Write([]byte("User-agent: *\nDisallow: /"))
+		_, _ = w.Write([]byte("User-agent: *\nDisallow: /"))
 	})
 
-	log.Fatal(http.ListenAndServe(":8990", r))
+	b := make([]byte, 32)
+
+	_, err := rand.Read(b)
+
+	if err != nil {
+		panic(err)
+	}
+
+	log.Fatal(http.ListenAndServe(":8990", csrf.Protect(b)(r)))
 }
 
 func buildEncoder(r *http.Request, w io.Writer) *formulate.HTMLEncoder {
-	return formulate.NewEncoder(w, decorators.BootstrapDecorator{})
+	enc := formulate.NewEncoder(w, r, decorators.BootstrapDecorator{})
+	enc.SetCSRFProtection(true)
+	enc.SetFormat(false)
+
+	return enc
 }
 
 func buildDecoder(r *http.Request, form url.Values) *formulate.HTTPDecoder {
@@ -184,101 +199,13 @@ type AddQuoteForm struct {
 	WhatIsThePassword formulate.Password `name:"What is the password?" help:"If you don't know this, then you don't belong here." validators:"password"`
 }
 
-const indexTemplate = `
-<!doctype html>
-<html lang="en">
-<head>
-	<title>Quotes</title>
-	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-	<link rel="stylesheet" type="text/css" href="https://use.fontawesome.com/releases/v5.8.0/css/all.css">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta charset="utf-8">
-</head>
+var (
+	//go:embed templates/index.html
+	indexTemplate string
 
-<body>
-	<div class="container">
-		<div class="mt-5">
-
-			<div class="float-left">
-				<h2>Quotes</h2>
-			</div>
-
-			<div class="float-right">
-				<a href="/add-quote" class="btn btn-success">Add a Quote</a>
-			</div>
-
-			<div class="clearfix"></div>
-			
-			{{ range $index, $quote := .Quotes }}
-				<div class="card mt-5 mb-5">
-					<div class="card-body">
-						<div class="row">
-							<div class="col-12 col-sm-2 col-md-2 col-lg-1">
-								<i class="fas fa-quote-left" style="font-size: 3em; color: #0a84ff; float: left; margin-right: 30px; margin-left: 20px;"></i>
-							</div>
-					
-							<div class="col-12 col-sm-10 col-md-10 col-lg-11">
-								<h3 class="mt-4">{{ $quote.HTML }}</h3>
-							</div>
-						</div>
-
-						<div class="float-right text-muted">
-							~ {{ $quote.WhoSaidTheSillyThing }}<br> 
-							<small>Submitted on {{ $quote.Time.Format "Mon, 02 Jan 2006 15:04:05 MST" }}</small>
-						</div>
-					</div>
-				</div>
-			{{ end }}
-		</div>
-
-		<footer class="text-right text-muted mb-5">
-			<em>yet another useless project by seejy</em>
-		</footer>
-	</div>
-</body>
-</html>
-`
-
-const addQuoteTemplate = `
-<!doctype html>
-<html lang="en">
-<head>
-	<title>Add a Quote</title>
-	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta charset="utf-8">
-</head>
-
-<body>
-	<div class="container">
-		<div class="mt-5">
-			<div class="float-left">
-				<h2>Submit a Quote</h2>
-			</div>
-
-			<div class="float-right">
-				<a href="/" class="btn btn-primary">Go Home</a>
-			</div>
-
-			<div class="clearfix"></div>
-			
-			<form method="POST" action="/add-quote" class="mt-5">
-				%s
-
-				<button type="submit" class="btn btn-success float-right">Submit</button>
-
-			</form>
-
-			<div class="clearfix"></div>
-		</div>
-
-		<footer class="text-right text-muted mb-5 mt-5">
-			<em>yet another useless project by seejy</em>
-		</footer>
-	</div>
-</body>
-</html>
-`
+	//go:embed templates/add-quote.html
+	addQuoteTemplate string
+)
 
 type passwordValidator struct{}
 
