@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	mathRand "math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -80,6 +81,46 @@ func main() {
 		_, _ = w.Write([]byte(fmt.Sprintf(addQuoteTemplate, encodedForm)))
 	})
 
+	r.HandleFunc("/who-said-it", func(w http.ResponseWriter, r *http.Request) {
+		var whoSaidItForm WhoSaidItForm
+
+		randQuote, err := randomQuote()
+
+		if err != nil {
+			http.Error(w, "uh-o", http.StatusInternalServerError)
+			return
+		}
+
+		whoSaidItForm.QuoteID = randQuote.ID
+
+		encodedForm, save, err := formulate.Formulate(r, &whoSaidItForm, buildEncoder, buildDecoder)
+
+		var response string
+
+		if err == nil && save {
+			quote, err := readQuote(whoSaidItForm.QuoteID + ".json")
+
+			if err != nil {
+				http.Error(w, "uh-o", http.StatusInternalServerError)
+				return
+			}
+
+			if strings.TrimSpace(strings.ToLower(quote.WhoSaidTheSillyThing)) == strings.TrimSpace(strings.ToLower(whoSaidItForm.WhoSaidIt)) || strings.Contains(strings.ToLower(quote.WhoSaidTheSillyThing), strings.ToLower(whoSaidItForm.WhoSaidIt)) {
+				response = "correct! Guess again!"
+			} else {
+				response = "nope, you suck, it was " + quote.WhoSaidTheSillyThing + ". Try again."
+			}
+
+			whoSaidItForm.WhoSaidIt = ""
+			whoSaidItForm.QuoteID = randQuote.ID
+
+			encodedForm, save, err = formulate.Formulate(r, &whoSaidItForm, buildEncoder, buildDecoder)
+		}
+
+		w.Header().Add("Content-Type", "text/html")
+		_, _ = w.Write([]byte(fmt.Sprintf(whoSaidItTemplate, response, randQuote.WhatSillyThingDidTheySay, randQuote.Time.Format("Mon, 02 Jan 2006 15:04:05 MST"), encodedForm)))
+	})
+
 	r.Get("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/plain")
 		_, _ = w.Write([]byte("User-agent: *\nDisallow: /"))
@@ -138,6 +179,16 @@ func listQuotes() ([]*Quote, error) {
 	return quotes, nil
 }
 
+func randomQuote() (*Quote, error) {
+	quotes, err := listQuotes()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return quotes[mathRand.Intn(len(quotes))], nil
+}
+
 func readQuote(file string) (*Quote, error) {
 	f, err := os.Open(filepath.Join(quotesFolder, file))
 
@@ -153,10 +204,13 @@ func readQuote(file string) (*Quote, error) {
 		return nil, err
 	}
 
+	quote.ID = strings.TrimSuffix(file, ".json")
+
 	return &quote, nil
 }
 
 type Quote struct {
+	ID                       string
 	Time                     time.Time `show:"-"`
 	WhoSaidTheSillyThing     string    `name:"Who said the silly thing?"`
 	WhatSillyThingDidTheySay string    `name:"What silly thing did they say?" elem:"textarea"`
@@ -205,7 +259,15 @@ var (
 
 	//go:embed templates/add-quote.html
 	addQuoteTemplate string
+
+	//go:embed templates/who-said-it.html
+	whoSaidItTemplate string
 )
+
+type WhoSaidItForm struct {
+	QuoteID   string `type:"hidden"`
+	WhoSaidIt string `name:"Who said it?"`
+}
 
 type passwordValidator struct{}
 
